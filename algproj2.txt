@@ -1,0 +1,368 @@
+import random
+import numpy as np
+import time
+
+selection_swaps = 0
+bubble_swaps = -1 
+heap_swaps = 0
+merge_swaps = 0
+
+selection_comparisons = 0
+bubble_comparisons = 0
+heap_comparisons = 0
+merge_comparisons = 0
+
+
+#Random List Generator
+def randomList(n):
+  random_list = []
+  for x in range(0,n):
+    random_list.append(random.randint(1, 100))
+
+  return random_list
+
+
+#Selection Sort O(N^2)
+def selection_sort(array):   
+    global selection_swaps
+    global selection_comparisons   
+    for i in range(len(array)):
+        minimum = i
+        for j in range(i + 1, len(array)):
+          selection_comparisons += 1
+          if array[j] < array[minimum]:
+            minimum = j
+
+        # Place it at the front of the 
+        # sorted end of the array
+        array[minimum], array[i] = array[i], array[minimum]
+        selection_swaps += 1     
+    return array
+
+
+#Bubble sort (N^2)
+def bubble_sort(arr):
+  global bubble_swaps
+  global bubble_comparisons 
+  for i in range(len(arr) -1):
+    for j in range(len(arr) - i - 1):
+      bubble_comparisons += 1
+      if(arr[j] > arr[j + 1]): 
+            temp = arr[j]
+            arr[j] = arr[j + 1]
+            arr[j + 1] = temp 
+            bubble_swaps += 1 
+  return arr
+
+
+
+#Heap Sort
+# To heapify subtree rooted at index i. 
+# n is size of heap 
+def heapify(arr, n, i): 
+    global heap_swaps
+    global heap_comparisons 
+    largest = i # Initialize largest as root 
+    l = 2 * i + 1     
+    r = 2 * i + 2     
+    # See if left child of root exists and is 
+    # greater than root 
+    heap_comparisons += 1
+    if l < n and arr[i] < arr[l]: 
+        largest = l 
+  
+    # See if right child of root exists and is 
+    # greater than root 
+    heap_comparisons += 1
+    if r < n and arr[largest] < arr[r]: 
+        largest = r 
+  
+    # Change root, if needed 
+    heap_comparisons += 1
+    if largest != i: 
+        arr[i],arr[largest] = arr[largest],arr[i] # swap 
+        heap_swaps += 1 #previous condition only time swap happens in code checked via pythontutorial.com/visualize.html -BEN
+  
+        # Heapify the root. 
+        heapify(arr, n, largest)
+  
+# The main function to sort an array of given size 
+def heap_sort(arr):
+    global heap_swaps
+    global heap_comparisons  
+    n = len(arr) 
+  
+    # Build a maxheap. 
+    for i in range(n, -1, -1):
+        heapify(arr, n, i) 
+  
+    # One by one extract elements 
+    for i in range(n-1, 0, -1):
+        arr[i], arr[0] = arr[0], arr[i] # swap 
+        heapify(arr, i, 0) 
+    return arr
+ 
+
+
+def merge_sort(arr):
+    global merge_swaps
+    global merge_comparisons 
+
+    # The last array split
+    merge_comparisons += 1
+    if len(arr) <= 1:
+        merge_swaps += 1 #increment every time array divided into 2
+        return arr
+    mid = len(arr) // 2
+    # Perform merge_sort recursively on both halves
+    left =  merge_sort(arr[:mid])
+    right = merge_sort(arr[mid:])
+
+    # Merge each side together
+    return merge(left, right, arr.copy())
+
+    
+
+
+def merge(left, right, merged):
+    global merge_swaps
+    global merge_comparisons
+    left_cursor, right_cursor = 0, 0
+    while left_cursor < len(left) and right_cursor < len(right):
+        merge_swaps += 1
+        # Sort each one and place into the result
+        merge_comparisons += 1
+        if left[left_cursor] <= right[right_cursor]:
+            merged[left_cursor+right_cursor]=left[left_cursor]
+            left_cursor += 1
+        else:
+            merged[left_cursor + right_cursor] = right[right_cursor]
+            right_cursor += 1
+            
+    for left_cursor in range(left_cursor, len(left)):
+        merged[left_cursor + right_cursor] = left[left_cursor]
+        merge_swaps += 1
+        
+    for right_cursor in range(right_cursor, len(right)):
+        merged[left_cursor + right_cursor] = right[right_cursor]
+        merge_swaps += 1
+
+    return merged
+
+#Used in main to set step counters back to zero
+def resetGlobals():
+  global selection_swaps
+  global bubble_swaps
+  global heap_swaps
+  global merge_swaps
+
+  global selection_comparisons
+  global bubble_comparisons
+  global heap_comparisons
+  global merge_comparisons
+
+  selection_swaps = 0
+  bubble_swaps = 0
+  heap_swaps = 0
+  merge_swaps = 0
+
+  selection_comparisons = 0
+  bubble_comparisons = 0
+  heap_comparisons = 0
+  merge_comparisons = 0
+
+
+#Clears the contents of all the text files
+def resetFiles():
+  open("Selection Sort.txt", "w").close()
+  open("Bubble Sort.txt", "w").close()
+  open("Heap Sort.txt", "w").close()
+  open("Merge Sort.txt", "w").close()
+
+
+#Passes in an array and returns 4 copies of it to be used in sorts
+def createCopies(array):
+  version_Selection = array.copy()
+  version_Bubble = array.copy()
+  version_Heap = array.copy()
+  version_Merge = array.copy()
+
+  return version_Selection, version_Bubble, version_Heap, version_Merge
+
+
+#Passes in an array, its size, and the type of array it is (best/worst/average). Then creates and writes to text file
+def writeToSelection(array, i, t):
+
+  selectionFile = open('Selection Sort.txt', 'a')
+  if t is 'average':
+
+    selectionFile.write('Selection Sort with ' + str(i) + ' elements (Average Case)\n')
+
+  elif t is 'worst':
+
+    selectionFile.write('Selection Sort with ' + str(i) + ' elements (Worst Case)\n')
+
+  elif t is 'best':
+
+    selectionFile.write('Selection Sort with ' + str(i) + ' elements (Best Case)\n')
+
+  start = time.process_time()
+  selection_sort(array)
+  total_time = time.process_time() - start
+
+  selectionFile.write('Number of swaps: ' + str(selection_swaps) + '\n')
+  selectionFile.write('Number of comparisons: ' + str(selection_comparisons) + '\n')
+
+  selectionFile.write('Runtime: ' + str(total_time) + ' seconds\n\n')
+
+
+
+#Passes in an array, its size, and the type of array it is (best/worst/average). Then creates and writes to text file
+def writeToBubble(array, i, t):
+
+  bubbleFile = open('Bubble Sort.txt', 'a')
+
+  if t is 'average':
+    bubbleFile.write('Bubble Sort with ' + str(i) + ' elements (Average Case)\n')
+
+  elif t is 'worst':
+    bubbleFile.write('Bubble Sort with ' + str(i) + ' elements (Worst Case)\n')
+  
+  elif t is 'best':
+    bubbleFile.write('Bubble Sort with ' + str(i) + ' elements (Best Case)\n')
+
+  start = time.process_time()
+  bubble_sort(array)
+  total_time = time.process_time() - start
+
+  bubbleFile.write('Number of swaps: ' + str(bubble_swaps) + '\n')
+  bubbleFile.write('Number of comparisons: ' + str(bubble_comparisons) + '\n')
+
+  bubbleFile.write('Runtime: ' + str(total_time) + ' seconds\n\n')
+
+
+
+
+#Passes in an array, its size, and the type of array it is (best/worst/average). Then creates and writes to text file
+def writeToHeap(array, i, t):
+
+  heapFile = open('Heap Sort.txt', 'a')
+  if t is 'average':
+
+    heapFile.write('Heap Sort with ' + str(i) + ' elements (Average Case)\n')
+
+  elif t is 'worst':
+
+    heapFile.write('Heap Sort with ' + str(i) + ' elements (Worst Case)\n')
+
+  elif t is 'best':
+
+    heapFile.write('Heap Sort with ' + str(i) + ' elements (Best Case)\n')
+
+  start = time.process_time()
+  heap_sort(array)
+  total_time = time.process_time() - start
+
+  heapFile.write('Number of swaps: ' + str(heap_swaps) + '\n')
+  heapFile.write('Number of comparisons: ' + str(heap_comparisons) + '\n')
+
+  heapFile.write('Runtime: ' + str(total_time) + ' seconds\n\n')
+
+
+#Passes in an array, its size, and the type of array it is (best/worst/average). Then creates and writes to text file
+def writeToMerge(array, i, t):
+  mergeFile = open('Merge Sort.txt', 'a')
+  
+  if t is 'average':
+    mergeFile.write('Merge Sort with ' + str(i) + ' elements (Average Case)\n')
+  
+  elif t is 'worst':
+    mergeFile.write('Merge Sort with ' + str(i) + ' elements (Worst Case)\n')
+
+
+  elif t is 'best':
+
+    mergeFile.write('Merge Sort with ' + str(i) + ' elements (Best Case)\n')
+
+  start = time.process_time()
+  merge_sort(array)
+  total_time = time.process_time() - start
+
+  mergeFile.write('Number of swaps: ' + str(merge_swaps) + '\n')
+  mergeFile.write('Number of comparisons: ' + str(merge_comparisons) + '\n')
+
+  mergeFile.write('Runtime: ' + str(total_time) + ' seconds\n\n')
+
+#Creates a list that is the worst case senario for each sort
+def generateWorstCase(i):
+  worstCase = [''] * i
+  x = i
+
+  for b in range(0, i):
+    worstCase[b] = x
+    x -= 1
+
+
+  return worstCase
+
+#Creates a list that is the worst case senario for each sort
+def generateBestCase(i):
+  bestCase = [''] * i
+
+  for b in range(0, i):
+    bestCase[b] = b
+
+  return bestCase
+
+
+
+
+#Main 
+
+def main():
+  resetFiles()
+  i = 10
+  a = 10
+  b = 10
+  max_elements = 1000
+  
+
+  while i <= max_elements:
+    resetGlobals()
+    original_array = randomList(i)
+    copies = createCopies(original_array)   
+
+    writeToSelection(copies[0], i, 'average')
+    writeToBubble(copies[1], i, 'average')
+    writeToHeap(copies[2], i, 'average')
+    writeToMerge(copies[3], i, 'average')
+
+    i *= 10
+
+
+  while a <= max_elements:
+    resetGlobals()
+    worstCase = createCopies(generateWorstCase(a))
+    
+    writeToSelection(worstCase[0], a, 'worst')
+    writeToBubble(worstCase[1], a, 'worst')
+    writeToHeap(worstCase[2], a, 'worst')
+    writeToMerge(worstCase[3], a, 'worst')
+
+    a *= 10
+
+  while b <= max_elements:
+    resetGlobals()
+    bestCase = createCopies(generateBestCase(b))
+    
+    writeToSelection(bestCase[0], b, 'best')
+    writeToBubble(bestCase[1], b, 'best')
+    writeToHeap(bestCase[2], b, 'best')
+    writeToMerge(bestCase[3], b, 'best')
+
+    b *= 10
+
+
+
+
+main()
